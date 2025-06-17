@@ -34,7 +34,7 @@ def update_task(db: Session, task_id: int, task_data: schemas.TaskUpdate, user_i
     if not task:
         return None
 
-    update_data = task_data.dict(exclude_unset=True)  # only the fields provided
+    update_data = task_data.dict(exclude_unset=True) 
     for key, value in update_data.items():
         setattr(task, key, value)
 
