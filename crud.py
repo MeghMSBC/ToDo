@@ -1,47 +1,50 @@
+import models, schemas
 from sqlalchemy.orm import Session
-import models
-from models import User
-import schemas
-from passlib.context import CryptContext
+from auth import get_password_hash,verify_password
 
-def get_tasks(db:Session):
-    return db.query(models.Task).all()
+def create_user(db: Session, user: schemas.UserCreate):
+    hashed_password = get_password_hash(user.password)
+    db_user = models.User(username=user.username, hashed_password=hashed_password)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
 
-def get_task(db:Session,task_id:int):
-    return db.query(models.Task).filter(models.Task.id==task_id).first()
+def authenticate_user(db: Session, username: str, password: str):
+    user = db.query(models.User).filter(models.User.username == username).first()
+    if user and verify_password(password, user.hashed_password):
+        return user
+    return None
 
-def create_task(db:Session,task:schemas.TaskCreate):
-    db_task = models.Task(**task.dict())
+def create_task(db: Session, task: schemas.TaskCreate, user_id: int):
+    db_task = models.Task(**task.dict(), owner_id=user_id)
     db.add(db_task)
     db.commit()
     db.refresh(db_task)
     return db_task
 
-def update_task(db:Session,task_id:int,task:schemas.UpdateTask):
-    db_task = get_task(db,task_id)
-    if db_task:
-        for key,value in task.dict(exclude_unset=True).items():
-            setattr(db_task,key,value)
-    db.commit()
-    db.refresh(db_task)
-    return db_task
+def get_tasks(db: Session, user_id: int):
+    return db.query(models.Task).filter(models.Task.owner_id == user_id).all()
 
-def delete_task(db:Session,task_id:int):
-    db_task= get_task(db,task_id)
-    if(db_task):
+def get_task(db: Session, task_id: int, user_id: int):
+    return db.query(models.Task).filter(models.Task.id == task_id, models.Task.owner_id == user_id).first()
+
+def update_task(db: Session, task_id: int, task_data: schemas.TaskUpdate, user_id: int):
+    task = db.query(models.Task).filter(models.Task.id == task_id, models.Task.owner_id == user_id).first()
+    if not task:
+        return None
+
+    update_data = task_data.dict(exclude_unset=True)  # only the fields provided
+    for key, value in update_data.items():
+        setattr(task, key, value)
+
+    db.commit()
+    db.refresh(task)
+    return task
+
+def delete_task(db: Session, task_id: int, user_id: int):
+    db_task = get_task(db, task_id, user_id)
+    if db_task:
         db.delete(db_task)
         db.commit()
     return db_task
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-def get_user_by_username(db: Session, username: str):
-    return db.query(User).filter(User.username == username).first()
-
-def create_user(db: Session, user: schemas.UserCreate):
-    hashed_password = pwd_context.hash(user.password)
-    db_user = User(username=user.username, password=hashed_password)
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user

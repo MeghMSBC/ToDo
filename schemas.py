@@ -1,25 +1,25 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import List, Optional
 
 class TaskBase(BaseModel):
-    title : str 
-    description:str=""
-    completed :bool = False
+    title: str
+    description: str
+    completed: bool
 
 class TaskCreate(TaskBase):
     pass
 
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    completed: Optional[bool] = None
+
 class Task(TaskBase):
-    id:int
+    id: int
+    owner_id: int
 
     class Config:
-        orm_mode = True
-
-class UpdateTask(BaseModel):
-    title : Optional[str] = None
-    description:Optional[str] = None
-    completed :Optional[bool] = None
-
+        from_attributes = True
 
 class UserCreate(BaseModel):
     username: str
@@ -30,16 +30,4 @@ class User(BaseModel):
     username: str
 
     class Config:
-        orm_mode = True
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-class TokenData(BaseModel):
-    user_id: Optional[int] = None
-
-
-class UserLogin(BaseModel):
-    username: str
-    password: str
+        from_attributes = True
