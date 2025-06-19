@@ -1,0 +1,18 @@
+[2025-06-19 17:22:10,801] [INFO] User registered: Megh
+[2025-06-19 17:22:11,097] [INFO] New user created: Megh
+[2025-06-19 17:24:43,655] [INFO] User authenticated successfully: Megh
+[2025-06-19 17:24:43,734] [INFO] Access token created for user: Megh
+[2025-06-19 17:24:43,734] [INFO] Login successful for username: Megh
+[2025-06-19 17:25:05,429] [INFO] User authenticated: Megh
+[2025-06-19 17:25:05,433] [INFO] Fetching tasks for user_id=3
+[2025-06-19 17:25:40,279] [INFO] User authenticated: Megh
+[2025-06-19 17:25:40,287] [INFO] Task created for user_id=3: Checking Logger is my task
+[2025-06-19 17:26:24,463] [INFO] User authenticated: Megh
+[2025-06-19 17:26:24,509] [INFO] Task 1 updated for user_id=3
+[2025-06-19 17:26:35,180] [INFO] User authenticated: Megh
+[2025-06-19 17:26:35,181] [INFO] Fetching tasks for user_id=3
+[2025-06-19 17:26:45,787] [INFO] User authenticated: Megh
+[2025-06-19 17:26:45,789] [INFO] Fetching task 1 for user_id=3
+[2025-06-19 17:26:45,841] [INFO] Task 1 deleted for user_id=3
+[2025-06-19 17:26:52,104] [INFO] User authenticated: Megh
+[2025-06-19 17:26:52,105] [INFO] Fetching tasks for user_id=3

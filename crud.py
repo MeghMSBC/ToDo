@@ -1,6 +1,7 @@
 import models, schemas
 from sqlalchemy.orm import Session
 from auth import get_password_hash, verify_password
+from logger import logger
 
 # create a new user in the database
 # takes user data and creates a new user record with hashed password
@@ -17,6 +18,7 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+    logger.info(f"New user created: {user.username}")
     return db_user
 
 # authenticate a user by checking username and password
@@ -29,7 +31,9 @@ def authenticate_user(db: Session, username: str, password: str):
     """
     user = db.query(models.User).filter(models.User.username == username).first()
     if user and verify_password(password, user.hashed_password):
+        logger.info(f"User authenticated successfully: {username}")
         return user
+    logger.warning(f"Authentication failed for user: {username}")
     return None
 
 # create a new task for a user
@@ -43,6 +47,7 @@ def create_task(db: Session, task: schemas.TaskCreate, user_id: int):
     db.add(db_task)
     db.commit()
     db.refresh(db_task)
+    logger.info(f"Task created for user_id={user_id}: {task.title}")
     return db_task
 
 # get all tasks for a user
@@ -52,6 +57,7 @@ def get_tasks(db: Session, user_id: int):
     
     returns a list of task objects
     """
+    logger.info(f"Fetching tasks for user_id={user_id}")
     return db.query(models.Task).filter(models.Task.owner_id == user_id).all()
 
 # get a specific task by id
@@ -61,6 +67,7 @@ def get_task(db: Session, task_id: int, user_id: int):
     
     returns the task if it exists and belongs to the user
     """
+    logger.info(f"Fetching task {task_id} for user_id={user_id}")
     return db.query(models.Task).filter(models.Task.id == task_id, models.Task.owner_id == user_id).first()
 
 # update an existing task
@@ -72,14 +79,16 @@ def update_task(db: Session, task_id: int, task_data: schemas.TaskUpdate, user_i
     """
     task = db.query(models.Task).filter(models.Task.id == task_id, models.Task.owner_id == user_id).first()
     if not task:
+        logger.warning(f"Task update failed. Task {task_id} not found for user_id={user_id}")
         return None
 
-    update_data = task_data.dict(exclude_unset=True) 
+    update_data = task_data.dict(exclude_unset=True)
     for key, value in update_data.items():
         setattr(task, key, value)
 
     db.commit()
     db.refresh(task)
+    logger.info(f"Task {task_id} updated for user_id={user_id}")
     return task
 
 def delete_task(db: Session, task_id: int, user_id: int):
@@ -87,4 +96,7 @@ def delete_task(db: Session, task_id: int, user_id: int):
     if db_task:
         db.delete(db_task)
         db.commit()
+        logger.info(f"Task {task_id} deleted for user_id={user_id}")
+    else:
+        logger.warning(f"Delete failed. Task {task_id} not found for user_id={user_id}")
     return db_task

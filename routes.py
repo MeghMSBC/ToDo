@@ -5,6 +5,7 @@ import schemas, crud, models, auth
 from database import get_db
 from auth import get_current_user, create_access_token
 from datetime import timedelta
+from logger import logger
 
 router = APIRouter()
 
@@ -20,7 +21,9 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     """
     db_user = db.query(models.User).filter(models.User.username == user.username).first()
     if db_user:
+        logger.warning(f"Signup failed: username '{user.username}' already exists.")
         raise HTTPException(status_code=400, detail="Username already registered")
+    logger.info(f"User registered: {user.username}")
     return crud.create_user(db, user)
 
 # user login endpoint
@@ -35,8 +38,10 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     """
     user = crud.authenticate_user(db, form_data.username, form_data.password)
     if not user:
+        logger.warning(f"Login failed for username: {form_data.username}")
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     access_token = create_access_token(data={"sub": user.username}, expires_delta=timedelta(minutes=30))
+    logger.info(f"Login successful for username: {form_data.username}")
     return {"access_token": access_token, "token_type": "bearer"}
 
 # get user's tasks
